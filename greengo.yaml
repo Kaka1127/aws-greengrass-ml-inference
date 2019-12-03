@@ -1,0 +1,58 @@
+# Greeengrass Group definition file
+Group:
+  name: ML_infer
+Cores:
+  - name: ML_infer_core_1
+    key_path: ./certs
+    config_path: ./config
+    SyncShadow: False
+
+Lambdas:
+  - name: GreengrassImageClassification
+    runtime: python2.7
+    handler: run.handler
+    package: lambdas/GreengrassImageClassification
+    alias: dev
+    greengrassConfig:
+      MemorySize: 128000 # Kb, ask AWS why
+      Timeout: 10 # Sec
+      Pinned: True # Set True for long-lived functions
+      Environment:
+        AccessSysfs: False
+        ResourceAccessPolicies:
+          - ResourceId: resource_1_path_to_input
+            Permission: 'rw'
+        Variables:
+           WATCH_PATTERN: /input/*.jpeg
+
+  - name: HelloLongRunning
+    runtime: python2.7
+    handler: function.handler
+    package: lambdas/HelloLongRunning
+    alias: dev
+    greengrassConfig:
+      MemorySize: 128000 # Kb, ask AWS why
+      Timeout: 10 # Sec
+      Pinned: True
+      Environment:
+        Variables:
+           INTERVAL: '5'
+
+Resources:
+    # Resource as defined at http://boto3.readthedocs.io/en/latest/reference/services/greengrass.html#Greengrass.Client.create_resource_definition_version
+  - Name: path_to_input
+    Id: resource_1_path_to_input
+    LocalVolumeResourceData:
+      SourcePath: /images
+      DestinationPath: /input
+      GroupOwnerSetting:
+        AutoAddGroupOwner: True
+
+# Subscriptions: # not implemented
+  # - Source: Lambda::GreengrassImageClassification
+  #   Subject: hello/world
+  #   Target: cloud
+  # - Source: cloud
+  #   Subject: hello/world
+  #   Target: Lambda::GreengrassImageClassification
+
